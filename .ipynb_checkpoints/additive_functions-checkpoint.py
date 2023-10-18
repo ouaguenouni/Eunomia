@@ -72,7 +72,6 @@ def compute_semivalues(n, theta, weights, probability_function):
              p(1)*[Parameters involving 0 contained in the coalitions of size 1 with their coefficients] = p(1) * w[0] = p(1)*1
              p(2)*[Parameters involving 0 contained in the coalitions of size 2 with their coefficients] = p(2) * (2*w[0] + w[3] + w[4]) = p(2)*11
              p(3)*[Parameters involving 0 contained in the coalitions of size 3 with their coefficients] = p(3) * (w[0] + w[3] + w[4]) = p(3)*10
-             Total : pb(1)*weights[0] + pb(2)*(weights[0] + weights[3]) + pb(2)*(weights[0] + weights[4]) + pb(3) * (weights[0] + weights[3] + weights[4])
     if we take p(x) = 1; then the semivalue of 0 is : 22.
     """
 
