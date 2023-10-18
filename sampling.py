@@ -3,6 +3,8 @@ import random
 import itertools
 from Eunomia.alternatives import *
 
+generate_normal_weights = lambda theta,sigma:np.random.normal(0, sigma, size = (len(theta),))
+
 
 def generate_random_theta(n, m):
     """
