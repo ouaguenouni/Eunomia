@@ -33,3 +33,36 @@ def mcmc_posterior(R):
         trace = pm.sample(2000, tune=500, chains=2, target_accept=0.90)
 
     return trace
+
+
+def trace_to_numpy(trace):
+    """
+    Convert a PyMC3 trace to a NumPy array format for weights and bias parameters.
+
+    Parameters:
+    - trace (pm.backends.base.MultiTrace): A PyMC3 MultiTrace object containing parameter samples.
+
+    Returns:
+    - numpy.ndarray: A NumPy array containing the samples of weights and bias parameters.
+
+    Example:
+    To convert a PyMC3 trace to a NumPy array:
+
+    numpy_samples = trace_to_numpy(trace)
+    """
+
+    numpy_trace = {}
+
+    # Iterate through variables in the posterior data
+    for var in trace.posterior.data_vars.keys():
+        numpy_trace[var] = trace.posterior[var].values
+
+    # Concatenate the weights and bias samples along the last axis
+    numpy_samples = np.concatenate([numpy_trace["weights"], numpy_trace["bias"].reshape((2, -1, 1))], axis=2)
+
+    return numpy_samples
+
+
+
+
+
