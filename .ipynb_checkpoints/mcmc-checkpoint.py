@@ -1,3 +1,20 @@
+
+## Standard imports
+import numpy as np
+import arviz as az
+import matplotlib.pyplot as plt
+import seaborn as sns
+import pandas as pd
+RANDOM_SEED = 8927
+rng = np.random.default_rng(RANDOM_SEED)
+np.set_printoptions(2)
+import pymc.sampling_jax
+import os, sys
+sys.stderr = open(os.devnull, "w")
+import pymc as pm
+import aesara.tensor as at
+import aesara
+
 def mcmc_posterior(R):
     """
     Compute the posterior distribution of model parameters using Markov Chain Monte Carlo (MCMC).
