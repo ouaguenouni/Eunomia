@@ -47,7 +47,7 @@ class PreferenceModel:
         Returns the machine-readable string representation of the PreferenceModel object.
     """
     
-    def __init__(self, alternatives, ranks):
+    def __init__(self, alternatives, ranks, theta = None):
         """
         Initializes a new PreferenceModel object.
         
@@ -62,7 +62,9 @@ class PreferenceModel:
         self.alternatives = alternatives
         self.ranks = ranks
         self.preference_matrix = None
-        self.theta = [{i} for i in range(alternatives.shape[1])]  # Default to the set of all original features
+        if not theta:
+            theta = [{i} for i in range(alternatives.shape[1])]  # Default to the set of all original features
+        self.theta = theta
         self.sparse_preference_set = None
 
     def generate_preference_matrix(self, theta=None):

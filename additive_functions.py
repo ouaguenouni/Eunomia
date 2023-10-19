@@ -91,3 +91,35 @@ def compute_semivalues(n, theta, weights, probability_function):
             #print(f"Number of coalitions with {S} in them: ", cpt)
             semivalues[i] += cpt * weights[theta.index(S)]            
     return semivalues
+
+def kendall_tau_distance(seq1, seq2):
+    """
+    Compute the Kendall Tau distance between two sorted sequences of indexes.
+
+    Parameters:
+    - seq1 (numpy.ndarray or list): The first sorted sequence of indexes.
+    - seq2 (numpy.ndarray or list): The second sorted sequence of indexes.
+
+    Returns:
+    - int: The Kendall Tau distance.
+
+    Example:
+    To compute the Kendall Tau distance between two sequences:
+
+    seq1 = [1, 3, 0, 2]
+    seq2 = [1, 0, 3, 2]
+    distance = kendall_tau_distance(seq1, seq2)
+    print(distance)  # Output: 2
+    """
+
+    # Initialize the count of discordant pairs
+    discordant_pairs = 0
+
+    # Iterate through pairs of elements in both sequences
+    for i in range(len(seq1)):
+        for j in range(i + 1, len(seq1)):
+            if (seq1[i] < seq1[j] and seq2[i] > seq2[j]) or (seq1[i] > seq1[j] and seq2[i] < seq2[j]):
+                discordant_pairs += 1
+
+    return discordant_pairs
+
