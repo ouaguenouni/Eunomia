@@ -1,85 +1,91 @@
-
-## Standard imports
+import pyro
+import pyro.distributions as dist
+import torch
+from pyro.infer import MCMC, NUTS
+from scipy.stats import norm
+from torch.distributions import Normal
+import math
 import numpy as np
+
+from Eunomia.preferences import *
+from Eunomia.additive_functions import *
+from Eunomia.alternatives import *
+from Eunomia.sampling import *
+
+# Standard imports
 import arviz as az
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
-RANDOM_SEED = 8927
-rng = np.random.default_rng(RANDOM_SEED)
-np.set_printoptions(2)
-import pymc.sampling_jax
-import os, sys
-sys.stderr = open(os.devnull, "w")
-import pymc as pm
-import aesara.tensor as at
-import aesara
 
-def mcmc_posterior(R):
+from torch import nn
+from torch.distributions import constraints
+
+import pyro.optim as optim
+
+pyro.set_rng_seed(1)
+
+
+def posterior_sampling_model(R, **kwargs):
     """
-    Compute the posterior distribution of model parameters using Markov Chain Monte Carlo (MCMC).
-
+    Create a probabilistic model suitable for posterior sampling.
+    
     Parameters:
-    - R (PreferenceMatrix): An instance of a PreferenceMatrix containing preference data.
-
+    ------------
+    R : tensor
+        A matrix containing preference vectors.
+    
+    Optional Keyword Arguments:
+    ---------------------------
+    sigma_w : float
+        Specifies the standard deviation of the Gaussian prior distribution for the weights `w`.
+    sigma_p : float
+        Specifies the rate parameter for the Exponential distribution used as a hyperprior for `sigma`.
+    
     Returns:
-    - pm.backends.base.MultiTrace: A MultiTrace object containing samples from the posterior distribution.
-
+    --------
+    A Pyro probabilistic model.
     """
+    sigma_w = 1e-2 if 'sigma_w' not in kwargs else kwargs['sigma_w']
+    sigma_p = float(1) if 'sigma_p' not in kwargs else float(kwargs['sigma_p'])
+    def model(R):
+        num_features = R.size(1)
+        w = pyro.sample("w", dist.Normal(torch.zeros(num_features), sigma_w*torch.ones(num_features)))
+        sigma = pyro.sample("sigma", dist.Exponential(torch.tensor(sigma_p)))
+        dot_product = torch.einsum('ij,j->i', R, w) / sigma
+        cdf_values = 0.5 * (1 + torch.erf(dot_product / math.sqrt(2.0)))
+        with pyro.plate("data", len(R)):
+            pyro.sample("obs", pyro.distributions.Bernoulli(cdf_values), obs=torch.ones(R.shape[0]))
+    return model
 
-    X = R.generate_preference_matrix()
-
-    # Create labels (y) for the preference data
-    y = np.ones((X.shape[0], 1))
-
-    with pm.Model() as probit_model:
-        # Define priors for weights and bias
-        weights = pm.Normal('weights', mu=0, sigma=1, shape=X.shape[1])
-        bias = pm.Normal('bias', mu=0, sigma=1)
-
-        # Probit link function
-        mu = pm.math.dot(X, weights) + bias
-        phi = pm.math.invprobit(mu)  # Inverse probit link function
-        y_obs = pm.Bernoulli('y_obs', p=phi, observed=np.ones(X.shape[0]))
-
-        # Prior formula for weights and bias:
-        # P(weights) ~ Normal(0, 1)
-        # P(bias) ~ Normal(0, 1)
-
-        # Sample from the posterior using MCMC
-        trace = pm.sample(2000, tune=500, chains=2, target_accept=0.90)
-
-    return trace
-
-
-def trace_to_numpy(trace):
+def sample_model(m, R, *args, **kwargs):
     """
-    Convert a PyMC3 trace to a NumPy array format for weights and bias parameters.
-
+    Perform MCMC sampling on a given Pyro model.
+    
     Parameters:
-    - trace (pm.backends.base.MultiTrace): A PyMC3 MultiTrace object containing parameter samples.
-
+    ------------
+    m : Pyro model
+        The model from which to generate samples.
+    R : tensor
+        A matrix containing preference vectors.
+    args : tuple
+        Named samples to return, containing the specific keys in which we are interested.
+        
+    Optional Keyword Arguments:
+    ---------------------------
+    num_samples : int
+        The number of MCMC samples to generate.
+    warmup_steps : int
+        The number of warmup steps before generating samples.
+        
     Returns:
-    - numpy.ndarray: A NumPy array containing the samples of weights and bias parameters.
-
-    Example:
-    To convert a PyMC3 trace to a NumPy array:
-
-    numpy_samples = trace_to_numpy(trace)
+    --------
+    Posterior samples for the named variables.
     """
-
-    numpy_trace = {}
-
-    # Iterate through variables in the posterior data
-    for var in trace.posterior.data_vars.keys():
-        numpy_trace[var] = trace.posterior[var].values
-
-    # Concatenate the weights and bias samples along the last axis
-    numpy_samples = np.concatenate([numpy_trace["weights"], numpy_trace["bias"].reshape((2, -1, 1))], axis=2)
-
-    return numpy_samples
-
-
-
-
-
+    num_samples = 1000 if 'num_samples' not in kwargs else kwargs['num_samples']
+    warmup_steps = 200 if 'warmup_steps' not in kwargs else kwargs['warmup_steps']
+    nuts_kernel = NUTS(m)
+    mcmc = MCMC(nuts_kernel, num_samples=num_samples, warmup_steps=warmup_steps)
+    mcmc.run(R)
+    posterior_samples = mcmc.get_samples()
+    return tuple([posterior_samples[k] for k in args])
