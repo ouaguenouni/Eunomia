@@ -126,7 +126,7 @@ def get_acc_distribution(R, w_samples, sigma_samples=None):
         Array containing the accuracy for each set of posterior samples.
     """
     if sigma_samples is None:
-        sigma_samples = np.ones_like(w_samples)
+        sigma_samples = np.ones(R.shape[1])
     accs = []
     for w_sample, sigma in zip(w_samples, sigma_samples):
         pred = predict(R, w_sample, sigma)
