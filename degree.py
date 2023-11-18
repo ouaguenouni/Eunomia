@@ -30,7 +30,7 @@ def intersection_size(A, B):
 
     This function determines the number of elements that are common between subsets A 
     and B.
-    
+
     Returns:
     int: The number of elements that are common to both subsets A and B.
     """
@@ -84,7 +84,7 @@ def test_degree_prf(prf, k):
     h = cvxopt.matrix(h)
 
     # Solving the quadratic program
-    solution = cvxopt.solvers.qp(P, q, G, h)
+    solution = cvxopt.solvers.qp(P, q, G, h,  options={'show_progress': False})
 
     # Check if a solution exists
     return solution['status'] == 'optimal'
