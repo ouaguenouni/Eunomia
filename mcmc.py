@@ -82,7 +82,11 @@ def sample_model(m, R, *args, **kwargs):
     nuts_kernel = NUTS(m)
     mcmc = MCMC(nuts_kernel, num_samples=num_samples, warmup_steps=warmup_steps)
     mcmc.run(R)
+    # Extract acceptance probabilities
+    acceptance_probs = mcmc.get_extra_fields()['accept_prob']
     posterior_samples = mcmc.get_samples()
+    if return_acceptances in kwargs and kwargs["return_acceptanes"] == True:
+        return tuple([acceptance_probs] + [posterior_samples[k] for k in args])
     return tuple([posterior_samples[k] for k in args])
 
 def predict(R, w, sigma):
