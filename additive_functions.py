@@ -123,3 +123,29 @@ def kendall_tau_distance(seq1, seq2):
 
     return discordant_pairs
 
+def get_kt_distribution(rankings, gt):
+    """
+    Compute the Kendall Tau distance between each ranking in a set and a ground truth ranking.
+
+    This function calculates the Kendall Tau distance for each ranking in the provided list 
+    of rankings as compared to a given ground truth ranking. The Kendall Tau distance is 
+    a measure of the difference between two rankings.
+
+    Parameters:
+    rankings (list of lists): A list where each element is a ranking (list) to be compared 
+                              against the ground truth. Each ranking is a list of elements 
+                              ordered according to some criterion.
+    gt (list): The ground truth ranking. This is the reference ranking against which all 
+               other rankings in `rankings` are compared.
+
+    Returns:
+    numpy.ndarray: An array of Kendall Tau distances, each representing the distance between 
+                   the ground truth ranking and a ranking in the `rankings` list.
+    """
+    L = []
+    for ranking in rankings:
+        k = kendall_tau_distance(ranking, gt)
+        L.append(k)
+    
+    L = np.array(L) 
+    return L
