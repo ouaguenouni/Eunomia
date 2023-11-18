@@ -2,6 +2,40 @@ import cvxopt
 import scipy.special
 import numpy as np
 
+def degree_kernel(A, B, k):
+    """
+    Calculate the degree kernel value between two subsets A and B, up to a degree k.
+
+    This function computes a weighted sum of the number of combinations of elements
+    in the intersection of subsets A and B, considering all combination sizes up to k.
+    The weighting is based on the size of the combinations.
+
+    Parameters:
+    A (iterable): A subset of elements.
+    B (iterable): Another subset of elements.
+    k (int): The maximum degree up to which combinations are considered.
+
+    Returns:
+    float: The degree kernel value, which is a weighted sum of the number of combinations 
+           of intersecting elements between subsets A and B, up to the size k.
+    """
+    c = 0
+    for i in range(1, k + 1):
+        c += scipy.special.comb(intersection_size(A, B), i)
+    return c
+
+def intersection_size(A, B):
+    """
+    Calculate the size of the intersection between two subsets A and B.
+
+    This function determines the number of elements that are common between subsets A 
+    and B.
+    
+    Returns:
+    int: The number of elements that are common to both subsets A and B.
+    """
+    return len([i for i in list(A) if i in list(B)])
+
 def test_degree_prf(prf, k):
     """
     Test the degree of additivity of a set of pairwise preferences.
