@@ -85,7 +85,7 @@ def sample_model(m, R, *args, **kwargs):
     # Extract acceptance probabilities
     acceptance_probs = mcmc.get_extra_fields()['accept_prob']
     posterior_samples = mcmc.get_samples()
-    if return_acceptances in kwargs and kwargs["return_acceptanes"] == True:
+    if "return_acceptances" in kwargs and kwargs["return_acceptances"] == True:
         return tuple([acceptance_probs] + [posterior_samples[k] for k in args])
     return tuple([posterior_samples[k] for k in args])
 
