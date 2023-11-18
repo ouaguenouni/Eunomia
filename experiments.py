@@ -5,6 +5,32 @@ import yaml
 import glob
 import re
 
+def load_yaml_files_from_directory(directory):
+    """
+    Load all YAML files from a specified directory and return a list of dictionaries.
+    Handles Python-specific tags using FullLoader.
+
+    Parameters:
+    directory (str): The path to the directory containing the YAML files.
+
+    Returns:
+    list: A list of dictionaries extracted from the YAML files.
+    """
+    yaml_files = glob.glob(f"{directory}/*.yaml")
+    all_dicts = []
+
+    for file_path in yaml_files:
+        with open(file_path, 'r') as file:
+            try:
+                data = yaml.load(file, Loader=yaml.FullLoader)
+                if isinstance(data, dict):
+                    all_dicts.append(data)
+            except yaml.YAMLError as exc:
+                print(f"Error parsing YAML file {file_path}: {exc}")
+
+    return all_dicts
+
+
 def compute_experiment_file_name(experiment_params, experiment_name):
     """
     Computes the file name for an experiment based on the experiment parameters, name, and the current date.
