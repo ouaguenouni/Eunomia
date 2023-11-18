@@ -1,9 +1,16 @@
 print("begin")
+
 import time
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
+import os
+
+os.chdir("..")
+os.chdir("..")
+
+
 from Eunomia.preferences import *
 from Eunomia.additive_functions import *
 from Eunomia.alternatives import *
@@ -11,6 +18,8 @@ from Eunomia.sampling import *
 from Eunomia.mcmc import *
 from Eunomia.degree import *
 from Eunomia.experiments import *
+
+
 print("import sucessfull")
 
 TEST_NAME = "T2330"
