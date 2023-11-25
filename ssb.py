@@ -169,7 +169,7 @@ class SSBModel(nn.Module):
         Returns:
             torch.tensor: The likelihood value.
         """
-        l = torch.tensor(0)
+        l = torch.tensor(0).Float()
         for sparse_X, sparse_Y in R:
             f = self.forward(sparse_X, sparse_Y)
             l += torch.sigmoid(f)
