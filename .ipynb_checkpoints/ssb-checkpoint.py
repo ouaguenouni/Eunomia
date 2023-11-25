@@ -169,7 +169,7 @@ class SSBModel(nn.Module):
         Returns:
             torch.tensor: The likelihood value.
         """
-        l = 0
+        l = torch.tensor(0)
         for sparse_X, sparse_Y in R:
             f = self.forward(sparse_X, sparse_Y)
             l += torch.sigmoid(f)
@@ -221,3 +221,112 @@ class SSBModel(nn.Module):
         for (i, j, A, B) in self.phi_function.phi_values: 
             if np.abs(self.phi_function.phi_values[(i, j, A, B)].item()) > 1e-2:
                 print(f"C[{i}, {j}, {A}, {B}] = {self.phi_function.phi_values[(i, j, A, B)].item()}", end=" \n")
+import torch.optim as optim
+
+def fit_M_mle(model, R, lr=0.05, num_epochs=200):
+    """
+    Fit the phi function parameters of the model using Maximum Likelihood Estimation (MLE).
+
+    Parameters:
+    model: The SSB model instance.
+    R: Preference data.
+    lr (float): Learning rate for the optimizer. Defaults to 0.05.
+    num_epochs (int): Number of training epochs. Defaults to 200.
+
+    Returns:
+    list: A list of accuracy values at each epoch.
+
+    Description:
+    The function optimizes the phi function parameters of the model to maximize the likelihood
+    of the observed preference data R. It uses the Adam optimizer for the gradient descent.
+    The likelihood is calculated as:
+    $$
+    L(R) = \prod_{(X, Y) \in R} \sigma(f(X, Y))
+    $$
+    The loss is the negative log-likelihood.
+    """
+    phi_params = [model.phi_function.phi_values[k] for k in model.phi_function.phi_values]
+    optimizer = optim.Adam(phi_params, lr=lr)
+    losses = []
+    losses.append(model.accuracy(R))
+    
+    for epoch in range(num_epochs):
+        optimizer.zero_grad()
+        likelihood = model.likelihood(R).double()
+        loss = -torch.log(likelihood)
+        loss.backward()
+        optimizer.step()
+        losses.append(model.accuracy(R))
+    return losses
+
+def fit_w_map(model, R, lr=0.05, num_epochs=500, lambda_1=1e-5):
+    """
+    Fit the weights of the model using Maximum a Posteriori (MAP) estimation.
+
+    Parameters:
+    model: The SSB model instance.
+    R: Preference data.
+    lr (float): Learning rate. Defaults to 0.05.
+    num_epochs (int): Number of training epochs. Defaults to 500.
+    lambda_1 (float): Regularization parameter for the weights. Defaults to 1e-5.
+
+    Returns:
+    list: A list of accuracy values at each epoch.
+
+    Description:
+    The function optimizes the weights of the model to maximize the posterior likelihood
+    considering a regularization term for the weights. The loss function is:
+    $$
+    -\log(L(R)) + \lambda_1 \sum w^2
+    $$
+    where $L(R)$ is the likelihood of the preference data R.
+    """
+    optimizer = optim.Adam([model.weights], lr=lr)
+    losses = []
+    losses.append(model.accuracy(R))
+    
+    for epoch in range(num_epochs):
+        optimizer.zero_grad()
+        likelihood = model.likelihood(R)
+        loss = -torch.log(likelihood) + lambda_1 * torch.sum(torch.pow(model.weights, 2))
+        loss.backward()
+        optimizer.step()
+        losses.append(model.accuracy(R))
+    return losses
+
+def fit_M_map(model, R, lr=0.05, num_epochs=500, lambda_2=1e-5):
+    """
+    Fit the phi function parameters of the model using MAP estimation.
+
+    Parameters:
+    model: The SSB model instance.
+    R: Preference data.
+    lr (float): Learning rate. Defaults to 0.05.
+    num_epochs (int): Number of training epochs. Defaults to 500.
+    lambda_2 (float): Regularization parameter for the phi function. Defaults to 1e-5.
+
+    Returns:
+    list: A list of accuracy values at each epoch.
+
+    Description:
+    The function optimizes the phi function parameters of the model to maximize the posterior likelihood
+    with a regularization term for the phi function parameters. The loss function is:
+    $$
+    -\log(L(R)) + \lambda_2 \sum |phi\_params|
+    $$
+    where $L(R)$ is the likelihood of the preference data R.
+    """
+    phi_params = [model.phi_function.phi_values[k] for k in model.phi_function.phi_values]
+    model.weights.requires_grad = False
+    optimizer = optim.Adam(phi_params, lr=lr)
+    losses = []
+    losses.append(model.accuracy(R))
+    
+    for epoch in range(num_epochs):
+        optimizer.zero_grad()
+        likelihood = model.likelihood(R)
+        loss = -torch.log(likelihood) + lambda_2 * sum([torch.abs(i) for i in phi_params])
+        loss.backward()
+        optimizer.step()
+        losses.append(model.accuracy(R))
+    return losses
