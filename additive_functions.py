@@ -25,33 +25,6 @@ def compute_ws_ranks(alt_matrix, theta, w):
     return ranks
 
 
-def compute_semivalues(n, theta, weights, probability_function):
-    """
-    Compute the semivalues of each feature based on the provided parameters.
-
-    Parameters:
-    - n (int): The number of features.
-    - theta (list of lists): A list containing subsets represented as lists of feature indices.
-    - weights (list): A vector of weights for each element in theta.
-    - probability_function (function): A function that takes a subset and returns a probability.
-
-    Returns:
-    - numpy.ndarray: A vector of semivalues, where the component i corresponds to the semivalue of feature i.
-    """
-
-    semivalues = np.zeros(n)
-    #For each feature we want to compute the semivalue.
-    for i in range(n):
-        #We loop through all the parameters implying i
-        for S in [s for s in theta if i in s]:
-            #For each parameter we count the number of coalitions that contains it
-            subset_size = len(S)
-            for k in range(subset_size, n):
-                binomial_coeff = comb(n - subset_size, k - subset_size)
-                semivalues[i] += binomial_coeff * probability(k)
-            semivalues[i] = semivalues[i] * w_S            
-    return semivalues
-
 
 def compute_semivalues(n, theta, weights, probability_function):
     """
