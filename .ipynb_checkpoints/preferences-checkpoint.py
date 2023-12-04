@@ -78,7 +78,7 @@ class PreferenceModel:
         
         for i in range(k):
             for j in range(k):
-                if self.ranks[i] < self.ranks[j]:
+                if self.ranks[i] > self.ranks[j]:
                     preference_vector = projected_alternatives[i] - projected_alternatives[j]
                     P.append(preference_vector)
 
