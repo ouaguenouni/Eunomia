@@ -95,7 +95,7 @@ class PreferenceModel:
         k, _ = self.alternatives.shape
         for i in range(k):
             for j in range(k):
-                if self.ranks[i] < self.ranks[j]:
+                if self.ranks[i] > self.ranks[j]:
                     sparse_A = alt_to_sparse(self.alternatives[i])
                     sparse_B = alt_to_sparse(self.alternatives[j])
                     self.sparse_preference_set.add((sparse_A, sparse_B))
