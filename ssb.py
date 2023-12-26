@@ -169,9 +169,9 @@ class SSBModel(nn.Module):
         Returns:
             torch.tensor: The likelihood value.
         """
-        l = 0
+        l = torch.tensor(0).float()
         for sparse_X, sparse_Y in R:
-            f = self.forward(sparse_X, sparse_Y)
+            f = self.forward(sparse_X, sparse_Y).float()
             l += torch.sigmoid(f)
         return l
 
@@ -287,7 +287,7 @@ def fit_w_map(model, R, lr=0.05, num_epochs=500, lambda_1=1e-5):
     
     for epoch in range(num_epochs):
         optimizer.zero_grad()
-        likelihood = model.likelihood(R).double()
+        likelihood = model.likelihood(R)
         loss = -torch.log(likelihood) + lambda_1 * torch.sum(torch.pow(model.weights, 2))
         loss.backward()
         optimizer.step()
@@ -324,7 +324,7 @@ def fit_M_map(model, R, lr=0.05, num_epochs=500, lambda_2=1e-5):
     
     for epoch in range(num_epochs):
         optimizer.zero_grad()
-        likelihood = model.likelihood(R).double()
+        likelihood = model.likelihood(R)
         loss = -torch.log(likelihood) + lambda_2 * sum([torch.abs(i) for i in phi_params])
         loss.backward()
         optimizer.step()
